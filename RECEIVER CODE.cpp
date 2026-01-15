@@ -3,21 +3,15 @@
 #include <RF24.h>
 #include <Servo.h>
 
-
 RF24 radio(9, 10);   
 Servo myServo;
-
-
 const byte address[6] = "00001";
-
-
 const int relayPin = 5;    
 const int servoPin = 6;   
 
-
 struct DataPacket {
-  int servoAngle;    //угол сервы (0-180)
-  bool pumpState;    //состояние насоса (1-вкл, 0-выкл)
+  int servoAngle;    
+  bool pumpState;   
 };
 
 DataPacket receivedData;
@@ -27,11 +21,10 @@ void setup() {
   
 
   pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, LOW);  //насос выключен
+  digitalWrite(relayPin, LOW); 
   
   myServo.attach(servoPin);     
-  myServo.write(90);            //стартовое положение - середина
-  
+  myServo.write(90);           
 
   if (!radio.begin()) {
     Serial.println("Radio module failed!");
@@ -45,20 +38,14 @@ void setup() {
 }
 
 void loop() {
- 
   if (radio.available()) {
     radio.read(&receivedData, sizeof(receivedData));  
     
-    //управляем сервоприводом
-    int angle = constrain(receivedData.servoAngle, 0, 180);  // Ограничиваем угол
+    int angle = constrain(receivedData.servoAngle, 0, 180);  
     myServo.write(angle);
-    
-    //управляем насосом через реле
-    // ВНИМАНИЕ: У реле может быть логика LOW = ВКЛ, HIGH = ВЫКЛ
-    // Проверьте ваше реле! Этот код для реле с активным HIGH
+  
     digitalWrite(relayPin, receivedData.pumpState ? HIGH : LOW);
     
-    // вывод в монитор порта для отладки
     Serial.print("Angle: ");
     Serial.print(angle);
     Serial.print(" | Pump: ");
